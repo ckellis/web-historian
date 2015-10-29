@@ -20,7 +20,7 @@ var router = {
 var sendResponse = function(response, data, statusCode) {
   statusCode = statusCode || 200;
   response.writeHead(statusCode, headers);
-  response.end(JSON.stringify(data));
+  response.end(data);
 };
 
 exports.handleRequest = function (req, res) {
@@ -30,22 +30,42 @@ exports.handleRequest = function (req, res) {
     var route = parts.pathname;
 
     if(route === '/') {
-      console.log("30" , route);
       var filePath = archive.paths.siteAssets + router[route];
-      console.log(filePath);
+      console.log("34", filePath);
       fs.readFile(filePath, 'UTF8', function(err, content){
         if(err){
           sendResponse(res, null, 406);
-          console.log("37: Are we here");
           throw err;
         } else {
           sendResponse(res, content, 200);
         }
       });
     } else {
-      sendResponse(res, null, 404);
-      console.log("51: Are we here");
+      sendResponse(res, null, 404); 
     }
+  } else if(req.method === "POST") {
+    //POST
+    console.log("POST");
+
+    var data = '';
+    req.on('data', function(chunk) {
+         data += chunk;
+      });
+    req.on('end',function(){
+      // console.log("54", archive.paths.list); 
+      data = data.substr(4) + ',';
+      archive.isUrlInList(data);
+      if(archive.isUrlInList(data)){
+        console.log("58");
+        fs.appendFile(archive.paths.list, data, function(err) {
+          if(err){
+            sendResponse(res, null, 400);
+          } else {
+            sendResponse(res, null, 200);
+          }
+        });
+      }
+    });
   }
   // res.end(archive.paths.list);
 };

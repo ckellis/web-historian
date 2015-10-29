@@ -28,13 +28,40 @@ exports.initialize = function(pathsObj) {
 exports.readListOfUrls = function() {
 };
 
-exports.isUrlInList = function() {
+exports.isUrlInList = function(file) {
+  filePath = this.paths.list;
+  console.log("33: FilePath:", this.paths.list);
+  var data;
+
+  fs.readFile(filePath, 'UTF8', function(err, content){
+    console.log("37ReadFile");
+    if(err){
+        console.log("37throwErr");
+      throw err;
+    } else {
+
+      console.log("41Content", content);
+      data = content.split(',');
+
+      if(data.indexOf(file) !== -1) {
+        return true;
+      } else {
+        return false;
+      }
+      console.log("41", data);
+    }
+  });
+
+
 };
+
 
 exports.addUrlToList = function() {
 };
 
 exports.isUrlArchived = function() {
+
+
 };
 
 exports.downloadUrls = function() {
