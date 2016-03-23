@@ -35,15 +35,13 @@ exports.readListOfUrls = function(callback) {
   });
 };
 
-exports.isUrlInList = function(url) {
-  fs.readFile(this.paths.list, 'UTF8', function (err, data) {
-    if (err) throw err;
-    else if(data.indexOf(url) < 0){
-     return false;
-    } else {
-      return true;
-    }
+exports.isUrlInList = function(url, callback) {
+  var found = false;
+  exports.readListOfUrls(function(sites) {
+    if (sites.indexOf(url) > -1)
+      found = true;
   });
+  callback(found);
 };
 
 exports.addUrlToList = function(filePath) {
