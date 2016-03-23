@@ -44,24 +44,14 @@ exports.isUrlInList = function(url, callback) {
   callback(found);
 };
 
-exports.addUrlToList = function(filePath) {
-  if(!this.isUrlInList(filePath)){
-    fs.appendFile(this.paths.list, filePath, function(err) {
-      if(err)
-        throw err;
-    });
-  }
+exports.addUrlToList = function(url, callback) {
+  fs.appendFile(exports.paths.list, url, function(err) {
+    if(err) throw err;
+  });
+  callback();
 };
 
-exports.isUrlArchived = function(filePath) {
-  filePath = this.paths.archivedSites + filePath;
-  try {
-    return fs.statSync(filePath).isFile();
-  }
-    catch (err)
-  {
-    return false;
-  }
+exports.isUrlArchived = function(url, callback) {
 };
 
 exports.downloadUrls = function(target){
