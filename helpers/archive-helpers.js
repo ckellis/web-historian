@@ -1,5 +1,5 @@
 var fs = require('fs');
-var http = require('http');
+var request = require('request');
 var path = require('path');
 var _ = require('underscore');
 var handler = require("../web/request-handler");
@@ -52,20 +52,13 @@ exports.addUrlToList = function(url, callback) {
 };
 
 exports.isUrlArchived = function(url, callback) {
+  var filePath = exports.paths.archivedSites + url;
+
+  fs.exists(filePath, function(archived) {
+    callback(archived);
+  });
 };
 
-exports.downloadUrls = function(target){
-  http.get({
-    url: 'http://' + target,
-    progress: function (current, total) {
-      console.log('downloaded %d bytes from %d', current, total);
-    }
-  }, path.join(exports.paths.archivedSites, target), function (err, res) {
-    if (err) {
-      console.error(err);
-      return;
-    }
+exports.downloadUrls = function(urls) {
 
-    console.log(res.code, res.headers, res.file);
-  });
 };
