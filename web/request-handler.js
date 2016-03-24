@@ -28,25 +28,26 @@ var flag = true;
 
 exports.handleRequest = function (req, res) {
 
-  if(req.method === "GET") {
+  if (req.method === "GET") {
     var urlPath = urlParser.parse(req.url).pathname;
-    // / means index.html
-    if (urlPath === '/') urlPath = '/index.html';
 
-    helper.serveAssets(res, urlPath, function() {
-      archive.isUrlInList(urlPath.slice(1), function(found) {
-        if (found) { // yes:
-          // redirect to loading
-          helper.sendRedirect(res, '/loading.html');
-        } else {
-          // 404
-          helper.sendResponse(res, null, 404);
-        }
+    if (urlPath === '/')
+      helper.serveAssets(res, '/index.html');
+    else {
+      helper.serveArchived(res, urlPath, function() {
+        archive.isUrlInList(urlPath.slice(1), function(found) {
+          if (found) {
+            // redirect to loading
+            helper.sendRedirect(res, '/loading.html');
+          } else {
+            helper.sendResponse(res, null, 404);
+          }
+        });
       });
-    });
+    }
   }
 
-  if(req.method === "POST") {
+  if (req.method === "POST") {
     var data = "";
     request.on("data", function(chunk) {
       data += chunk;
