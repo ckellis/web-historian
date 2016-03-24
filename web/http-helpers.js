@@ -28,12 +28,12 @@ exports.sendRedirect = function(res, location, status) {
   res.end();
 };
 
-// exports.collectData = function(request, callback) {
-//   var data = "";
-//   request.on("data", function(chunk) {
-//     data += chunk;
-//   });
-//   request.on("end", function() {
-//     callback(data);
-//   });
-// };
+exports.collectData = function(req, callback) {
+  var data = "";
+  req.on("data", function(chunk) {
+    data += chunk;
+  });
+  req.on("end", function() {
+    callback(data);
+  });
+};

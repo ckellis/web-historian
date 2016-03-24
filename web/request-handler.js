@@ -1,6 +1,5 @@
 var path = require('path');
 var archive = require('../helpers/archive-helpers');
-// require more modules/folders here!
 var fs = require('fs');
 var urlParser = require('url');
 var helper = require("./http-helpers");
@@ -13,21 +12,12 @@ exports.headers = headers = {
   'Content-Type': "text/html"
 };
 
-exports.sendResponse = function(response, data, statusCode) {
-  statusCode = statusCode || 200;
-  response.writeHead(statusCode, headers);
-  response.end(data);
-};
-
 var router = {
   1: '/index.html',
   2: '/styles.css'
 };
 
-var flag = true;
-
 exports.handleRequest = function (req, res) {
-
   if (req.method === "GET") {
     var urlPath = urlParser.parse(req.url).pathname;
 
@@ -48,35 +38,24 @@ exports.handleRequest = function (req, res) {
   }
 
   if (req.method === "POST") {
-    var data = "";
-    request.on("data", function(chunk) {
-      data += chunk;
-    });
-    var url = data.split('=')[1]; // www.google.com
-    // in sites.txt ?
-    archive.isUrlInList(url, function(found) {
-      if (found) { // yes:
-        // is archived ?
-        archive.isUrlArchived(url, function(exists) {
-          if (exists) {
-            // redirect to site page (/www.google.com)
-            utils.sendRedirect(response, '/'+url);
-          } else {
-            // redirect to loading.html
-            utils.sendRedirect(response, '/loading.html');
-          }
-        });
-      } else { // not found
-        // append to sites.txt
-        archive.addUrlToList(url, function() {
-          // redirect to loading.html
-          utils.sendRedirect(response, '/loading.html');
-        });
-      }
-    });
-        request.on("end", function() {
-      callback(data);
+    helper.collectData(req, function(data) {
+      var url = data.split('=')[1];
+
+      archive.isUrlInList(url, function(found) {
+        if (found) {
+          archive.isUrlArchived(url, function(exists) {
+            if (exists) {
+              helper.sendRedirect(res, '/' + url);
+            } else {
+              helper.sendRedirect(res, '/loading.html');
+            }
+          });
+        } else {
+          archive.addUrlToList(url, function() {
+            helper.sendRedirect(res, '/loading.html');
+          });
+        }
+      });
     });
   }
-  // res.end(archive.paths.list);
 };
