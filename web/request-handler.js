@@ -2,7 +2,8 @@ var path = require('path');
 var archive = require('../helpers/archive-helpers');
 // require more modules/folders here!
 var fs = require('fs');
-var url = require('url');
+var urlParser = require('url');
+var helper = require("./http-helpers");
 
 exports.headers = headers = {
   "access-control-allow-origin": "*",
@@ -12,59 +13,68 @@ exports.headers = headers = {
   'Content-Type': "text/html"
 };
 
-var router = {
-  '/': '/index.html'
-  // ...
-};
-
-var sendResponse = function(response, data, statusCode) {
+exports.sendResponse = function(response, data, statusCode) {
   statusCode = statusCode || 200;
   response.writeHead(statusCode, headers);
   response.end(data);
 };
 
-exports.handleRequest = function (req, res) {
-  //console.log("6: handleRequest:", req);
-  if(req.method === "GET") {
-    var parts = url.parse(req.url);
-    var route = parts.pathname;
+var router = {
+  1: '/index.html',
+  2: '/styles.css'
+};
 
-    if(route === '/') {
-      var filePath = archive.paths.siteAssets + router[route];
-      console.log("34", filePath);
-      fs.readFile(filePath, 'UTF8', function(err, content){
-        if(err){
-          sendResponse(res, null, 406);
-          throw err;
+var flag = true;
+
+exports.handleRequest = function (req, res) {
+
+  if(req.method === "GET") {
+    var urlPath = urlParser.parse(req.url).pathname;
+    // / means index.html
+    if (urlPath === '/') urlPath = '/index.html';
+
+    helper.serveAssets(res, urlPath, function() {
+      archive.isUrlInList(urlPath.slice(1), function(found) {
+        if (found) { // yes:
+          // redirect to loading
+          helper.sendRedirect(res, '/loading.html');
         } else {
-          sendResponse(res, content, 200);
+          // 404
+          helper.sendResponse(res, null, 404);
         }
       });
-    } else {
-      sendResponse(res, null, 404); 
-    }
-  } else if(req.method === "POST") {
-    //POST
-    console.log("POST");
+    });
+  }
 
-    var data = '';
-    req.on('data', function(chunk) {
-         data += chunk;
-      });
-    req.on('end',function(){
-      // console.log("54", archive.paths.list); 
-      data = data.substr(4) + ',';
-      archive.isUrlInList(data);
-      if(archive.isUrlInList(data)){
-        console.log("58");
-        fs.appendFile(archive.paths.list, data, function(err) {
-          if(err){
-            sendResponse(res, null, 400);
+  if(req.method === "POST") {
+    var data = "";
+    request.on("data", function(chunk) {
+      data += chunk;
+    });
+    var url = data.split('=')[1]; // www.google.com
+    // in sites.txt ?
+    archive.isUrlInList(url, function(found) {
+      if (found) { // yes:
+        // is archived ?
+        archive.isUrlArchived(url, function(exists) {
+          if (exists) {
+            // redirect to site page (/www.google.com)
+            utils.sendRedirect(response, '/'+url);
           } else {
-            sendResponse(res, null, 200);
+            // redirect to loading.html
+            utils.sendRedirect(response, '/loading.html');
           }
         });
+      } else { // not found
+        // append to sites.txt
+        archive.addUrlToList(url, function() {
+          // redirect to loading.html
+          utils.sendRedirect(response, '/loading.html');
+        });
       }
+    });
+        request.on("end", function() {
+      callback(data);
     });
   }
   // res.end(archive.paths.list);
